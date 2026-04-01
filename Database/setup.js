@@ -65,15 +65,17 @@ async function installPostgreSQL() {
     console.log("");
     console.log(" Step 1: PostgreSQL Installation");
 
-    // check if postgresql 16 is already installed
-    let result = runQuiet("winget list PostgreSQL.PostgreSQL.16");
+    // check if psql command exists
+    let psqlCheck = runQuiet("psql --version");
 
-    if (result.includes("PostgreSQL 16")) {
-        console.log("  PostgreSQL 16 is already installed. Skipping.");
+    if (psqlCheck) {
+        console.log("  " + psqlCheck.trim());
+        console.log("  PostgreSQL is already installed. Skipping.");
         return;
     }
 
-    console.log("  PostgreSQL 16 was not found on this computer.");
+    // use winget
+    console.log("  PostgreSQL was not found on this computer.");
     console.log("");
 
     let answer = await askUser("  Do you want to install PostgreSQL 16? (y/n): ");
