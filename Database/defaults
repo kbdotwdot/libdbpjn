@@ -1,0 +1,327 @@
+var bcrypt = require("bcryptjs");
+
+async function loadDefaults(db) {
+
+    // all default users have the password "password" except admin who has "admin"
+    var adminHash = await bcrypt.hash("admin", 10);
+    var userHash = await bcrypt.hash("password", 10);
+
+    // ========================================
+    //  USERS - 1 admin, 2 librarians, 10 members
+    //  Hong Kong names, phone numbers, emails
+    // ========================================
+
+    console.log("  - inserting users...");
+
+    // admin (user_id = 1)
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Admin", "User", "1985-01-01", "9000-0000", "admin@admin.admin", adminHash, "Admin"]
+    );
+
+    // librarians (user_id = 2, 3)
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Wing Yan", "Chan", "1990-03-15", "9123-4567", "wingyan.chan@library.hk", userHash, "Librarian"]
+    );
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Ka Ming", "Wong", "1988-07-22", "9234-5678", "kaming.wong@library.hk", userHash, "Librarian"]
+    );
+
+    // members (user_id = 4 to 13)
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Hoi Lam", "Lee", "1995-06-10", "9345-6789", "hoilam.lee@gmail.com", userHash, "Member"]
+    );
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Tsz Hin", "Lau", "1992-11-03", "9456-7890", "tszhin.lau@gmail.com", userHash, "Member"]
+    );
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Mei Ling", "Cheung", "2000-02-28", "9567-8901", "meiling.cheung@gmail.com", userHash, "Member"]
+    );
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Wai Kit", "Ng", "1998-09-14", "9678-9012", "waikit.ng@outlook.com", userHash, "Member"]
+    );
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Siu Man", "Tam", "1997-04-05", "9789-0123", "siuman.tam@outlook.com", userHash, "Member"]
+    );
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Pak Hei", "Ho", "1993-12-20", "9890-1234", "pakhei.ho@yahoo.com", userHash, "Member"]
+    );
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Sze Wan", "Yip", "2001-08-17", "9901-2345", "szewan.yip@gmail.com", userHash, "Member"]
+    );
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Chi Wai", "Leung", "1996-01-30", "9012-3456", "chiwai.leung@gmail.com", userHash, "Member"]
+    );
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Hei Tung", "Kwok", "1999-05-12", "9111-2222", "heitung.kwok@outlook.com", userHash, "Member"]
+    );
+    await db.query(
+        "INSERT INTO users (first_name, last_name, date_of_birth, phone_number, email_address, password, role) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        ["Lok Yin", "Fung", "1994-10-08", "9333-4444", "lokyin.fung@yahoo.com", userHash, "Member"]
+    );
+
+    console.log("    1 admin, 2 librarians, 10 members");
+
+
+    // ========================================
+    //  AUTHORS (10)
+    // ========================================
+
+    console.log("  - inserting authors...");
+
+    await db.query("INSERT INTO authors (name) VALUES ('William Shakespeare')");    // 1
+    await db.query("INSERT INTO authors (name) VALUES ('Jane Austen')");            // 2
+    await db.query("INSERT INTO authors (name) VALUES ('F. Scott Fitzgerald')");    // 3
+    await db.query("INSERT INTO authors (name) VALUES ('George Orwell')");          // 4
+    await db.query("INSERT INTO authors (name) VALUES ('Harper Lee')");             // 5
+    await db.query("INSERT INTO authors (name) VALUES ('Mary Shelley')");           // 6
+    await db.query("INSERT INTO authors (name) VALUES ('Arthur Conan Doyle')");     // 7
+    await db.query("INSERT INTO authors (name) VALUES ('Agatha Christie')");        // 8
+    await db.query("INSERT INTO authors (name) VALUES ('Ray Bradbury')");           // 9
+    await db.query("INSERT INTO authors (name) VALUES ('J.R.R. Tolkien')");         // 10
+
+    console.log("    10 authors");
+
+
+    // ========================================
+    //  GENRES (10)
+    // ========================================
+
+    console.log("  - inserting genres...");
+
+    await db.query("INSERT INTO genres (name) VALUES ('Drama')");            // 1
+    await db.query("INSERT INTO genres (name) VALUES ('Tragedy')");          // 2
+    await db.query("INSERT INTO genres (name) VALUES ('Comedy')");           // 3
+    await db.query("INSERT INTO genres (name) VALUES ('Romance')");          // 4
+    await db.query("INSERT INTO genres (name) VALUES ('Classic')");          // 5
+    await db.query("INSERT INTO genres (name) VALUES ('Fiction')");          // 6
+    await db.query("INSERT INTO genres (name) VALUES ('Dystopian')");        // 7
+    await db.query("INSERT INTO genres (name) VALUES ('Mystery')");          // 8
+    await db.query("INSERT INTO genres (name) VALUES ('Science Fiction')");  // 9
+    await db.query("INSERT INTO genres (name) VALUES ('Fantasy')");          // 10
+
+    console.log("    10 genres");
+
+
+    // ========================================
+    //  BOOK DETAILS (10 books - real ISBNs)
+    // ========================================
+
+    console.log("  - inserting book details...");
+
+    // Shakespeare (5 books)
+    await db.query(
+        "INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1,$2,$3,$4,$5)",
+        ["9780141396507", "Hamlet", "Penguin Classics", 2015, "The Prince of Denmark seeks revenge after his father is murdered by his own uncle."]
+    );
+    await db.query(
+        "INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1,$2,$3,$4,$5)",
+        ["9780143128571", "Romeo and Juliet", "Penguin Classics", 2016, "Two young lovers from feuding families in Verona face a tragic fate."]
+    );
+    await db.query(
+        "INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1,$2,$3,$4,$5)",
+        ["9780141396316", "Macbeth", "Penguin Classics", 2015, "A Scottish general receives a prophecy and commits regicide to become king."]
+    );
+    await db.query(
+        "INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1,$2,$3,$4,$5)",
+        ["9780141396514", "Othello", "Penguin Classics", 2015, "A Moorish general in the Venetian army is manipulated into jealousy and destruction."]
+    );
+    await db.query(
+        "INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1,$2,$3,$4,$5)",
+        ["9780141396668", "A Midsummer Night's Dream", "Penguin Classics", 2015, "Lovers and fairies collide in an enchanted forest outside Athens."]
+    );
+
+    // Other classics (5 books)
+    await db.query(
+        "INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1,$2,$3,$4,$5)",
+        ["9780141439518", "Pride and Prejudice", "Penguin Classics", 1813, "A witty romance about manners and marriage in Georgian England."]
+    );
+    await db.query(
+        "INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1,$2,$3,$4,$5)",
+        ["9780143136330", "The Great Gatsby", "Penguin Books", 1925, "A tale of wealth, love, and the American Dream in the Jazz Age."]
+    );
+    await db.query(
+        "INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1,$2,$3,$4,$5)",
+        ["9780451524935", "1984", "Signet Classics", 1949, "A dystopian novel set in a totalitarian society under constant surveillance."]
+    );
+    await db.query(
+        "INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1,$2,$3,$4,$5)",
+        ["9780060935467", "To Kill a Mockingbird", "Harper Perennial", 1960, "A story of racial injustice in the American South seen through a child's eyes."]
+    );
+    await db.query(
+        "INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1,$2,$3,$4,$5)",
+        ["9780547928227", "The Hobbit", "Mariner Books", 1937, "A hobbit is swept into an epic quest to reclaim a lost kingdom from a dragon."]
+    );
+
+    console.log("    10 books (5 Shakespeare, 5 other classics)");
+
+
+    // ========================================
+    //  BOOK AUTHORS
+    // ========================================
+
+    console.log("  - linking books to authors...");
+
+    await db.query("INSERT INTO book_authors (isbn, author_id) VALUES ('9780141396507', 1)");  // Hamlet - Shakespeare
+    await db.query("INSERT INTO book_authors (isbn, author_id) VALUES ('9780143128571', 1)");  // Romeo & Juliet - Shakespeare
+    await db.query("INSERT INTO book_authors (isbn, author_id) VALUES ('9780141396316', 1)");  // Macbeth - Shakespeare
+    await db.query("INSERT INTO book_authors (isbn, author_id) VALUES ('9780141396514', 1)");  // Othello - Shakespeare
+    await db.query("INSERT INTO book_authors (isbn, author_id) VALUES ('9780141396668', 1)");  // Midsummer - Shakespeare
+    await db.query("INSERT INTO book_authors (isbn, author_id) VALUES ('9780141439518', 2)");  // Pride - Austen
+    await db.query("INSERT INTO book_authors (isbn, author_id) VALUES ('9780143136330', 3)");  // Gatsby - Fitzgerald
+    await db.query("INSERT INTO book_authors (isbn, author_id) VALUES ('9780451524935', 4)");  // 1984 - Orwell
+    await db.query("INSERT INTO book_authors (isbn, author_id) VALUES ('9780060935467', 5)");  // Mockingbird - Lee
+    await db.query("INSERT INTO book_authors (isbn, author_id) VALUES ('9780547928227', 10)"); // Hobbit - Tolkien
+
+    console.log("    10 links");
+
+
+    // ========================================
+    //  BOOK GENRES
+    // ========================================
+
+    console.log("  - linking books to genres...");
+
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780141396507', 1)");  // Hamlet - Drama
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780141396507', 2)");  // Hamlet - Tragedy
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780143128571', 1)");  // Romeo - Drama
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780143128571', 2)");  // Romeo - Tragedy
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780143128571', 4)");  // Romeo - Romance
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780141396316', 1)");  // Macbeth - Drama
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780141396316', 2)");  // Macbeth - Tragedy
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780141396514', 1)");  // Othello - Drama
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780141396514', 2)");  // Othello - Tragedy
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780141396668', 3)");  // Midsummer - Comedy
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780141396668', 10)"); // Midsummer - Fantasy
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780141439518', 4)");  // Pride - Romance
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780141439518', 5)");  // Pride - Classic
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780143136330', 6)");  // Gatsby - Fiction
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780143136330', 5)");  // Gatsby - Classic
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780451524935', 6)");  // 1984 - Fiction
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780451524935', 7)");  // 1984 - Dystopian
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780060935467', 6)");  // Mockingbird - Fiction
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780060935467', 5)");  // Mockingbird - Classic
+    await db.query("INSERT INTO book_genres (isbn, genre_id) VALUES ('9780547928227', 10)"); // Hobbit - Fantasy
+
+    console.log("    20 links");
+
+
+    // ========================================
+    //  BOOKS - physical copies (12)
+    // ========================================
+
+    console.log("  - inserting physical copies...");
+
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780141396507', 1, 'Good', 'Available')");       // 1  Hamlet
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780141396507', 2, 'Fair', 'Available')");        // 2  Hamlet
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780143128571', 1, 'Good', 'Available')");       // 3  Romeo
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780141396316', 1, 'Good', 'Available')");       // 4  Macbeth
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780141396514', 1, 'Good', 'Available')");       // 5  Othello
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780141396668', 1, 'Good', 'Available')");       // 6  Midsummer
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780141439518', 1, 'Good', 'Available')");       // 7  Pride
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780143136330', 1, 'Good', 'Available')");       // 8  Gatsby
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780143136330', 2, 'Worn', 'Available')");       // 9  Gatsby
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780451524935', 1, 'Good', 'Available')");       // 10 1984
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780060935467', 1, 'Good', 'Available')");       // 11 Mockingbird
+    await db.query("INSERT INTO books (isbn, copy_number, condition, status) VALUES ('9780547928227', 1, 'Good', 'Available')");       // 12 Hobbit
+
+    console.log("    12 copies");
+
+
+    // ========================================
+    //  BORROW RECORDS (10)
+    // ========================================
+
+    console.log("  - inserting borrow records...");
+
+    // returned on time
+    await db.query(
+        "INSERT INTO borrow_records (user_id, book_id, borrow_date, due_date, return_date) VALUES ($1,$2,$3,$4,$5)",
+        [4, 1, "2026-01-05", "2026-02-04", "2026-01-20"]   // Hoi Lam borrowed Hamlet copy 1
+    );
+    await db.query(
+        "INSERT INTO borrow_records (user_id, book_id, borrow_date, due_date, return_date) VALUES ($1,$2,$3,$4,$5)",
+        [5, 3, "2026-01-10", "2026-02-09", "2026-01-25"]   // Tsz Hin borrowed Romeo
+    );
+    await db.query(
+        "INSERT INTO borrow_records (user_id, book_id, borrow_date, due_date, return_date) VALUES ($1,$2,$3,$4,$5)",
+        [6, 7, "2026-01-12", "2026-02-11", "2026-02-01"]   // Mei Ling borrowed Pride
+    );
+    await db.query(
+        "INSERT INTO borrow_records (user_id, book_id, borrow_date, due_date, return_date) VALUES ($1,$2,$3,$4,$5)",
+        [7, 10, "2026-01-15", "2026-02-14", "2026-02-10"]  // Wai Kit borrowed 1984
+    );
+
+    // returned late (these will have fines)
+    await db.query(
+        "INSERT INTO borrow_records (user_id, book_id, borrow_date, due_date, return_date) VALUES ($1,$2,$3,$4,$5)",
+        [8, 5, "2026-01-03", "2026-02-02", "2026-02-12"]   // Siu Man borrowed Othello, 10 days late
+    );
+    await db.query(
+        "INSERT INTO borrow_records (user_id, book_id, borrow_date, due_date, return_date) VALUES ($1,$2,$3,$4,$5)",
+        [9, 12, "2026-01-08", "2026-02-07", "2026-02-20"]  // Pak Hei borrowed Hobbit, 13 days late
+    );
+
+    // currently borrowed (not returned yet)
+    await db.query(
+        "INSERT INTO borrow_records (user_id, book_id, borrow_date, due_date, return_date) VALUES ($1,$2,$3,$4,$5)",
+        [4, 4, "2026-03-10", "2026-04-09", null]   // Hoi Lam has Macbeth
+    );
+    await db.query("UPDATE books SET status = 'On Loan' WHERE book_id = 4");
+
+    await db.query(
+        "INSERT INTO borrow_records (user_id, book_id, borrow_date, due_date, return_date) VALUES ($1,$2,$3,$4,$5)",
+        [5, 8, "2026-03-15", "2026-04-14", null]   // Tsz Hin has Gatsby copy 1
+    );
+    await db.query("UPDATE books SET status = 'On Loan' WHERE book_id = 8");
+
+    await db.query(
+        "INSERT INTO borrow_records (user_id, book_id, borrow_date, due_date, return_date) VALUES ($1,$2,$3,$4,$5)",
+        [10, 11, "2026-03-18", "2026-04-17", null]  // Sze Wan has Mockingbird
+    );
+    await db.query("UPDATE books SET status = 'On Loan' WHERE book_id = 11");
+
+    await db.query(
+        "INSERT INTO borrow_records (user_id, book_id, borrow_date, due_date, return_date) VALUES ($1,$2,$3,$4,$5)",
+        [11, 6, "2026-03-20", "2026-04-19", null]   // Chi Wai has Midsummer
+    );
+    await db.query("UPDATE books SET status = 'On Loan' WHERE book_id = 6");
+
+    console.log("    10 borrow records (4 returned on time, 2 returned late, 4 currently on loan)");
+
+
+    // ========================================
+    //  FINES (for the 2 late returns)
+    // ========================================
+
+    console.log("  - inserting fines...");
+
+    // transaction 5: Siu Man, 10 days late, $2/day = $20, paid
+    await db.query(
+        "INSERT INTO fines (transaction_id, amount, paid, date_issued, date_paid) VALUES ($1,$2,$3,$4,$5)",
+        [5, 20.00, true, "2026-02-12", "2026-02-15"]
+    );
+
+    // transaction 6: Pak Hei, 13 days late, $2/day = $26, unpaid
+    await db.query(
+        "INSERT INTO fines (transaction_id, amount, paid, date_issued, date_paid) VALUES ($1,$2,$3,$4,$5)",
+        [6, 26.00, false, "2026-02-20", null]
+    );
+
+    console.log("    2 fines (1 paid, 1 unpaid)");
+
+    console.log("  Default data loaded.");
+}
+
+module.exports = loadDefaults;

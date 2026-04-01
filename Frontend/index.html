@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Library Database System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: monospace; font-size: 14px; }
+
+        /* nav bar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            border-bottom: 1px solid #000;
+        }
+        nav a {
+            margin-right: 16px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        nav a.active { font-weight: bold; }
+        #nav-right { display: flex; align-items: center; gap: 8px; }
+        #nav-right input { font-family: monospace; font-size: 14px; padding: 2px 4px; }
+        #nav-right button { font-family: monospace; font-size: 14px; cursor: pointer; }
+
+        /* pages */
+        .page { display: none; padding: 16px; }
+        .page.active { display: block; }
+
+        /* forms and results */
+        label { display: inline-block; width: 160px; }
+        input, select, textarea { font-family: monospace; font-size: 14px; margin: 4px 0; padding: 2px 4px; }
+        button { font-family: monospace; font-size: 14px; cursor: pointer; margin: 4px 0; }
+        pre { background: #f0f0f0; padding: 8px; margin: 8px 0; white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+        .msg { padding: 4px; margin: 4px 0; }
+        .msg.error { color: red; }
+        .msg.ok { color: green; }
+        hr { margin: 16px 0; }
+        h3 { margin: 12px 0 8px 0; }
+        table { border-collapse: collapse; margin: 8px 0; }
+        td, th { border: 1px solid #000; padding: 4px 8px; text-align: left; }
+    </style>
+</head>
+<body>
+
+<!-- ========== NAV BAR ========== -->
+<nav>
+    <div id="nav-left">
+        <a onclick="showPage('search')">Search</a>
+        <a onclick="showPage('profile')" id="nav-profile" style="display:none">Profile</a>
+        <a onclick="showPage('librarian')" id="nav-librarian" style="display:none">For-Librarian</a>
+        <a onclick="showPage('admin')" id="nav-admin" style="display:none">For-Admin</a>
+    </div>
+    <div id="nav-right">
+        <!-- logged out -->
+        <span id="auth-form">
+            <input type="text" id="login-email" placeholder="email">
+            <input type="password" id="login-password" placeholder="password">
+            <button onclick="login()">Login</button>
+            <a onclick="showPage('register')">Register</a>
+        </span>
+        <!-- logged in -->
+        <span id="auth-info" style="display:none">
+            Logged in as: <strong id="auth-name"></strong> (<span id="auth-role"></span>)
+            <button onclick="logout()">Logout</button>
+        </span>
+    </div>
+</nav>
+
+
+<!-- ========== SEARCH PAGE ========== -->
+<div id="page-search" class="page active">
+    <h3>Search Books</h3>
+    <label>Search by ISBN or title:</label>
+    <input type="text" id="search-input" placeholder="enter ISBN or title">
+    <button onclick="searchBooks()">Search</button>
+    <div id="search-results"></div>
+</div>
+
+
+<!-- ========== REGISTER PAGE ========== -->
+<div id="page-register" class="page">
+    <h3>Register</h3>
+    <div>
+        <label>First name:</label><input type="text" id="reg-first"><br>
+        <label>Last name:</label><input type="text" id="reg-last"><br>
+        <label>Email:</label><input type="text" id="reg-email"><br>
+        <label>Password:</label><input type="password" id="reg-password"><br>
+        <label>Date of birth:</label><input type="date" id="reg-dob"><br>
+        <label>Phone:</label><input type="text" id="reg-phone"><br>
+        <button onclick="register()">Register</button>
+    </div>
+    <div id="register-msg"></div>
+</div>
+
+
+<!-- ========== PROFILE PAGE ========== -->
+<div id="page-profile" class="page">
+    <h3>My Profile</h3>
+    <div id="profile-info"></div>
+
+    <h3>My Borrowed Books</h3>
+    <div id="profile-borrows"></div>
+
+    <h3>My Fines</h3>
+    <div id="profile-fines"></div>
+</div>
+
+
+<!-- ========== LIBRARIAN PAGE ========== -->
+<div id="page-librarian" class="page">
+    <h3>Borrow a Book (for a member)</h3>
+    <div>
+        <label>Member user_id:</label><input type="number" id="borrow-user-id"><br>
+        <label>Book book_id:</label><input type="number" id="borrow-book-id"><br>
+        <button onclick="borrowBook()">Borrow</button>
+    </div>
+    <div id="borrow-msg"></div>
+
+    <hr>
+
+    <h3>Return a Book</h3>
+    <div>
+        <label>Book book_id:</label><input type="number" id="return-book-id"><br>
+        <button onclick="returnBook()">Return</button>
+    </div>
+    <div id="return-msg"></div>
+
+    <hr>
+
+    <h3>Add Book Details (new ISBN)</h3>
+    <div>
+        <label>ISBN:</label><input type="text" id="add-isbn"><br>
+        <label>Title:</label><input type="text" id="add-title"><br>
+        <label>Publisher:</label><input type="text" id="add-publisher"><br>
+        <label>Publication year:</label><input type="number" id="add-year"><br>
+        <label>Description:</label><input type="text" id="add-desc"><br>
+        <label>Author IDs (comma):</label><input type="text" id="add-author-ids" placeholder="1,2"><br>
+        <label>Genre IDs (comma):</label><input type="text" id="add-genre-ids" placeholder="1,3"><br>
+        <button onclick="addBookDetails()">Add Book Details</button>
+    </div>
+    <div id="add-book-details-msg"></div>
+
+    <hr>
+
+    <h3>Add Physical Copy</h3>
+    <div>
+        <label>ISBN:</label><input type="text" id="copy-isbn"><br>
+        <label>Copy number:</label><input type="number" id="copy-number"><br>
+        <label>Condition:</label><input type="text" id="copy-condition" value="Good"><br>
+        <button onclick="addCopy()">Add Copy</button>
+    </div>
+    <div id="add-copy-msg"></div>
+
+    <hr>
+
+    <h3>Add Author</h3>
+    <div>
+        <label>Author name:</label><input type="text" id="author-name"><br>
+        <button onclick="addAuthor()">Add Author</button>
+    </div>
+    <div id="add-author-msg"></div>
+
+    <hr>
+
+    <h3>Add Genre</h3>
+    <div>
+        <label>Genre name:</label><input type="text" id="genre-name"><br>
+        <button onclick="addGenre()">Add Genre</button>
+    </div>
+    <div id="add-genre-msg"></div>
+
+    <hr>
+
+    <h3>Mark Fine as Paid</h3>
+    <div>
+        <label>Fine ID:</label><input type="number" id="pay-fine-id"><br>
+        <button onclick="payFine()">Mark Paid</button>
+    </div>
+    <div id="pay-fine-msg"></div>
+
+    <hr>
+
+    <h3>All Borrow Records</h3>
+    <button onclick="loadAllBorrows()">Load</button>
+    <div id="all-borrows"></div>
+
+    <h3>All Fines</h3>
+    <button onclick="loadAllFines()">Load</button>
+    <div id="all-fines"></div>
+</div>
+
+
+<!-- ========== ADMIN PAGE ========== -->
+<div id="page-admin" class="page">
+    <h3>System Settings</h3>
+    <button onclick="loadSettings()">Load Settings</button>
+    <div id="settings-list"></div>
+
+    <hr>
+
+    <h3>Update Setting</h3>
+    <div>
+        <label>Setting key:</label>
+        <select id="setting-key">
+            <option value="max_books_per_user">max_books_per_user</option>
+            <option value="loan_period_days">loan_period_days</option>
+            <option value="fine_per_day">fine_per_day</option>
+        </select><br>
+        <label>New value:</label><input type="text" id="setting-value"><br>
+        <button onclick="updateSetting()">Update</button>
+    </div>
+    <div id="setting-msg"></div>
+
+    <hr>
+
+    <h3>Run Raw SQL</h3>
+    <div>
+        <textarea id="sql-input" rows="5" cols="80" placeholder="SELECT * FROM users;"></textarea><br>
+        <button onclick="runSQL()">Execute</button>
+    </div>
+    <pre id="sql-output"></pre>
+</div>
+
+
+<!-- ========== JAVASCRIPT ========== -->
+<script>
+
+var API = "";  // same origin since express serves this file
+var token = null;
+var currentUser = null;
+
+
+// ========================================
+//  Navigation
+// ========================================
+
+function showPage(name) {
+    var pages = document.querySelectorAll(".page");
+    for (var i = 0; i < pages.length; i++) {
+        pages[i].classList.remove("active");
+    }
+    document.getElementById("page-" + name).classList.add("active");
+
+    // load data when switching to certain pages
+    if (name === "profile" && token) {
+        loadProfile();
+    }
+}
+
+function updateNav() {
+    var profileLink = document.getElementById("nav-profile");
+    var librarianLink = document.getElementById("nav-librarian");
+    var adminLink = document.getElementById("nav-admin");
+    var authForm = document.getElementById("auth-form");
+    var authInfo = document.getElementById("auth-info");
+
+    if (token && currentUser) {
+        // logged in
+        authForm.style.display = "none";
+        authInfo.style.display = "inline";
+        document.getElementById("auth-name").textContent = currentUser.first_name + " " + currentUser.last_name;
+        document.getElementById("auth-role").textContent = currentUser.role;
+
+        profileLink.style.display = "inline";
+
+        if (currentUser.role === "Librarian" || currentUser.role === "Admin") {
+            librarianLink.style.display = "inline";
+        } else {
+            librarianLink.style.display = "none";
+        }
+
+        if (currentUser.role === "Admin") {
+            adminLink.style.display = "inline";
+        } else {
+            adminLink.style.display = "none";
+        }
+    } else {
+        // logged out
+        authForm.style.display = "inline";
+        authInfo.style.display = "none";
+        profileLink.style.display = "none";
+        librarianLink.style.display = "none";
+        adminLink.style.display = "none";
+    }
+}
+
+
+// ========================================
+//  Helper: make API calls
+// ========================================
+
+function apiCall(method, url, body, callback) {
+    var options = {
+        method: method,
+        headers: { "Content-Type": "application/json" }
+    };
+
+    if (token) {
+        options.headers["Authorization"] = "Bearer " + token;
+    }
+
+    if (body) {
+        options.body = JSON.stringify(body);
+    }
+
+    fetch(API + url, options)
+        .then(function (response) {
+            return response.json().then(function (data) {
+                return { status: response.status, data: data };
+            });
+        })
+        .then(function (result) {
+            callback(null, result.data, result.status);
+        })
+        .catch(function (error) {
+            callback(error.message, null, 0);
+        });
+}
+
+function showMsg(elementId, text, isError) {
+    var el = document.getElementById(elementId);
+    el.className = "msg " + (isError ? "error" : "ok");
+    el.textContent = text;
+}
+
+function makeTable(rows) {
+    if (!rows || rows.length === 0) return "<p>No records.</p>";
+
+    var keys = Object.keys(rows[0]);
+    var html = "<table><tr>";
+    for (var i = 0; i < keys.length; i++) {
+        html += "<th>" + keys[i] + "</th>";
+    }
+    html += "</tr>";
+
+    for (var r = 0; r < rows.length; r++) {
+        html += "<tr>";
+        for (var k = 0; k < keys.length; k++) {
+            var val = rows[r][keys[k]];
+            if (val === null) val = "";
+            html += "<td>" + val + "</td>";
+        }
+        html += "</tr>";
+    }
+    html += "</table>";
+    return html;
+}
+
+
+// ========================================
+//  Auth
+// ========================================
+
+function login() {
+    var email = document.getElementById("login-email").value;
+    var password = document.getElementById("login-password").value;
+
+    apiCall("POST", "/api/login", { email_address: email, password: password }, function (err, data) {
+        if (err || data.error) {
+            alert(data ? data.error : err);
+            return;
+        }
+        token = data.token;
+        currentUser = data.user;
+        updateNav();
+        showPage("search");
+    });
+}
+
+function logout() {
+    token = null;
+    currentUser = null;
+    updateNav();
+    showPage("search");
+}
+
+function register() {
+    var body = {
+        first_name: document.getElementById("reg-first").value,
+        last_name: document.getElementById("reg-last").value,
+        email_address: document.getElementById("reg-email").value,
+        password: document.getElementById("reg-password").value,
+        date_of_birth: document.getElementById("reg-dob").value || null,
+        phone_number: document.getElementById("reg-phone").value || null
+    };
+
+    apiCall("POST", "/api/register", body, function (err, data) {
+        if (err || data.error) {
+            showMsg("register-msg", data ? data.error : err, true);
+            return;
+        }
+        showMsg("register-msg", "Registered successfully. You can now log in.", false);
+    });
+}
+
+
+// ========================================
+//  Search
+// ========================================
+
+function searchBooks() {
+    var term = document.getElementById("search-input").value;
+
+    if (!term) {
+        document.getElementById("search-results").innerHTML = "";
+        return;
+    }
+
+    apiCall("GET", "/api/search?q=" + encodeURIComponent(term), null, function (err, data) {
+        if (err || data.error) {
+            document.getElementById("search-results").innerHTML = "<p class='msg error'>" + (data ? data.error : err) + "</p>";
+            return;
+        }
+
+        if (data.length === 0) {
+            document.getElementById("search-results").innerHTML = "<p>No books found.</p>";
+            return;
+        }
+
+        // show the list, and make each one clickable to see full details
+        var html = "<table><tr><th>ISBN</th><th>Title</th><th>Publisher</th><th>Year</th><th></th></tr>";
+        for (var i = 0; i < data.length; i++) {
+            html += "<tr>";
+            html += "<td>" + data[i].isbn + "</td>";
+            html += "<td>" + data[i].title + "</td>";
+            html += "<td>" + (data[i].publisher || "") + "</td>";
+            html += "<td>" + (data[i].publication_year || "") + "</td>";
+            html += "<td><a onclick=\"showBookDetail('" + data[i].isbn + "')\">details</a></td>";
+            html += "</tr>";
+        }
+        html += "</table>";
+
+        document.getElementById("search-results").innerHTML = html;
+    });
+}
+
+function showBookDetail(isbn) {
+    apiCall("GET", "/api/book-details/" + isbn, null, function (err, data) {
+        if (err || data.error) return;
+
+        var html = "<hr><h3>" + data.title + "</h3>";
+        html += "<p>ISBN: " + data.isbn + "</p>";
+        html += "<p>Publisher: " + (data.publisher || "N/A") + "</p>";
+        html += "<p>Year: " + (data.publication_year || "N/A") + "</p>";
+        html += "<p>Description: " + (data.description || "N/A") + "</p>";
+
+        if (data.authors && data.authors.length > 0) {
+            var names = [];
+            for (var i = 0; i < data.authors.length; i++) names.push(data.authors[i].name);
+            html += "<p>Authors: " + names.join(", ") + "</p>";
+        }
+
+        if (data.genres && data.genres.length > 0) {
+            var gnames = [];
+            for (var i = 0; i < data.genres.length; i++) gnames.push(data.genres[i].name);
+            html += "<p>Genres: " + gnames.join(", ") + "</p>";
+        }
+
+        // show copies and their availability
+        apiCall("GET", "/api/books", null, function (err2, allBooks) {
+            if (!err2 && !allBooks.error) {
+                var copies = [];
+                for (var i = 0; i < allBooks.length; i++) {
+                    if (allBooks[i].isbn === isbn) copies.push(allBooks[i]);
+                }
+                if (copies.length > 0) {
+                    html += "<h3>Copies</h3>";
+                    html += "<table><tr><th>book_id</th><th>Copy #</th><th>Condition</th><th>Status</th></tr>";
+                    for (var i = 0; i < copies.length; i++) {
+                        html += "<tr>";
+                        html += "<td>" + copies[i].book_id + "</td>";
+                        html += "<td>" + copies[i].copy_number + "</td>";
+                        html += "<td>" + copies[i].condition + "</td>";
+                        html += "<td>" + copies[i].status + "</td>";
+                        html += "</tr>";
+                    }
+                    html += "</table>";
+                } else {
+                    html += "<p>No physical copies registered.</p>";
+                }
+            }
+            document.getElementById("search-results").innerHTML += html;
+        });
+    });
+}
+
+
+// ========================================
+//  Profile
+// ========================================
+
+function loadProfile() {
+    if (!token || !currentUser) return;
+
+    // load user info
+    apiCall("GET", "/api/users/" + currentUser.user_id, null, function (err, data) {
+        if (err || data.error) {
+            document.getElementById("profile-info").innerHTML = "<p class='msg error'>Could not load profile.</p>";
+            return;
+        }
+        var html = "";
+        html += "<p>User ID: " + data.user_id + "</p>";
+        html += "<p>Name: " + data.first_name + " " + data.last_name + "</p>";
+        html += "<p>Email: " + data.email_address + "</p>";
+        html += "<p>Phone: " + (data.phone_number || "N/A") + "</p>";
+        html += "<p>Date of birth: " + (data.date_of_birth || "N/A") + "</p>";
+        html += "<p>Role: " + data.role + "</p>";
+        document.getElementById("profile-info").innerHTML = html;
+    });
+
+    // load my borrows
+    apiCall("GET", "/api/borrows/my", null, function (err, data) {
+        if (err || data.error) {
+            document.getElementById("profile-borrows").innerHTML = "<p>Could not load.</p>";
+            return;
+        }
+        document.getElementById("profile-borrows").innerHTML = makeTable(data);
+    });
+
+    // load my fines
+    apiCall("GET", "/api/fines/my", null, function (err, data) {
+        if (err || data.error) {
+            document.getElementById("profile-fines").innerHTML = "<p>Could not load.</p>";
+            return;
+        }
+        document.getElementById("profile-fines").innerHTML = makeTable(data);
+    });
+}
+
+
+// ========================================
+//  Librarian actions
+// ========================================
+
+function borrowBook() {
+    var body = {
+        user_id: parseInt(document.getElementById("borrow-user-id").value),
+        book_id: parseInt(document.getElementById("borrow-book-id").value)
+    };
+
+    apiCall("POST", "/api/borrow", body, function (err, data) {
+        if (err || data.error) {
+            showMsg("borrow-msg", data ? data.error : err, true);
+            return;
+        }
+        showMsg("borrow-msg", data.message + " | Due: " + data.borrow_record.due_date, false);
+    });
+}
+
+function returnBook() {
+    var body = {
+        book_id: parseInt(document.getElementById("return-book-id").value)
+    };
+
+    apiCall("POST", "/api/return", body, function (err, data) {
+        if (err || data.error) {
+            showMsg("return-msg", data ? data.error : err, true);
+            return;
+        }
+        var msg = data.message;
+        if (data.fine) {
+            msg += " | Fine: $" + data.fine.amount + " (" + data.fine.days_late + " days late)";
+        }
+        showMsg("return-msg", msg, false);
+    });
+}
+
+function addBookDetails() {
+    var authorIdsRaw = document.getElementById("add-author-ids").value;
+    var genreIdsRaw = document.getElementById("add-genre-ids").value;
+
+    var authorIds = [];
+    if (authorIdsRaw.trim()) {
+        var parts = authorIdsRaw.split(",");
+        for (var i = 0; i < parts.length; i++) authorIds.push(parseInt(parts[i].trim()));
+    }
+
+    var genreIds = [];
+    if (genreIdsRaw.trim()) {
+        var parts = genreIdsRaw.split(",");
+        for (var i = 0; i < parts.length; i++) genreIds.push(parseInt(parts[i].trim()));
+    }
+
+    var body = {
+        isbn: document.getElementById("add-isbn").value,
+        title: document.getElementById("add-title").value,
+        publisher: document.getElementById("add-publisher").value || null,
+        publication_year: parseInt(document.getElementById("add-year").value) || null,
+        description: document.getElementById("add-desc").value || null,
+        author_ids: authorIds,
+        genre_ids: genreIds
+    };
+
+    apiCall("POST", "/api/book-details", body, function (err, data) {
+        if (err || data.error) {
+            showMsg("add-book-details-msg", data ? data.error : err, true);
+            return;
+        }
+        showMsg("add-book-details-msg", data.message, false);
+    });
+}
+
+function addCopy() {
+    var body = {
+        isbn: document.getElementById("copy-isbn").value,
+        copy_number: parseInt(document.getElementById("copy-number").value),
+        condition: document.getElementById("copy-condition").value || "Good"
+    };
+
+    apiCall("POST", "/api/books", body, function (err, data) {
+        if (err || data.error) {
+            showMsg("add-copy-msg", data ? data.error : err, true);
+            return;
+        }
+        showMsg("add-copy-msg", "Copy added. book_id = " + data.book_id, false);
+    });
+}
+
+function addAuthor() {
+    var body = { name: document.getElementById("author-name").value };
+
+    apiCall("POST", "/api/authors", body, function (err, data) {
+        if (err || data.error) {
+            showMsg("add-author-msg", data ? data.error : err, true);
+            return;
+        }
+        showMsg("add-author-msg", "Author added. author_id = " + data.author_id, false);
+    });
+}
+
+function addGenre() {
+    var body = { name: document.getElementById("genre-name").value };
+
+    apiCall("POST", "/api/genres", body, function (err, data) {
+        if (err || data.error) {
+            showMsg("add-genre-msg", data ? data.error : err, true);
+            return;
+        }
+        showMsg("add-genre-msg", "Genre added. genre_id = " + data.genre_id, false);
+    });
+}
+
+function payFine() {
+    var fineId = document.getElementById("pay-fine-id").value;
+
+    apiCall("POST", "/api/fines/" + fineId + "/pay", {}, function (err, data) {
+        if (err || data.error) {
+            showMsg("pay-fine-msg", data ? data.error : err, true);
+            return;
+        }
+        showMsg("pay-fine-msg", data.message, false);
+    });
+}
+
+function loadAllBorrows() {
+    apiCall("GET", "/api/borrows", null, function (err, data) {
+        if (err || data.error) {
+            document.getElementById("all-borrows").innerHTML = "<p class='msg error'>" + (data ? data.error : err) + "</p>";
+            return;
+        }
+        document.getElementById("all-borrows").innerHTML = makeTable(data);
+    });
+}
+
+function loadAllFines() {
+    apiCall("GET", "/api/fines", null, function (err, data) {
+        if (err || data.error) {
+            document.getElementById("all-fines").innerHTML = "<p class='msg error'>" + (data ? data.error : err) + "</p>";
+            return;
+        }
+        document.getElementById("all-fines").innerHTML = makeTable(data);
+    });
+}
+
+
+// ========================================
+//  Admin actions
+// ========================================
+
+function loadSettings() {
+    apiCall("GET", "/api/settings", null, function (err, data) {
+        if (err || data.error) {
+            document.getElementById("settings-list").innerHTML = "<p class='msg error'>" + (data ? data.error : err) + "</p>";
+            return;
+        }
+        document.getElementById("settings-list").innerHTML = makeTable(data);
+    });
+}
+
+function updateSetting() {
+    var key = document.getElementById("setting-key").value;
+    var value = document.getElementById("setting-value").value;
+
+    apiCall("PUT", "/api/settings/" + key, { setting_value: value }, function (err, data) {
+        if (err || data.error) {
+            showMsg("setting-msg", data ? data.error : err, true);
+            return;
+        }
+        showMsg("setting-msg", data.message, false);
+        loadSettings();
+    });
+}
+
+function runSQL() {
+    var query = document.getElementById("sql-input").value;
+
+    apiCall("POST", "/api/sql", { query: query }, function (err, data) {
+        if (err || data.error) {
+            document.getElementById("sql-output").textContent = data ? data.error : err;
+            return;
+        }
+        document.getElementById("sql-output").textContent = JSON.stringify(data, null, 2);
+    });
+}
+
+
+// init
+updateNav();
+
+</script>
+</body>
+</html>
