@@ -4,36 +4,43 @@
 
 ### 4.1.1 User Registration
 Purpose: Create a new member account.
+Endpoint: `POST /api/register`
 SQL: `INSERT INTO users (...) VALUES (...) RETURNING user_id, first_name, last_name, email_address, role`
 Interface: Register form (Frontend → Register page, `register()`)
 
 ### 4.1.2 User Login
 Purpose: Authenticate user credentials.
+Endpoint: `POST /api/login`
 SQL: `SELECT * FROM users WHERE email_address = $1`
 Interface: Login form (top navigation bar, `login()`)
 
 ### 4.1.3 View All Users (librarian/admin)
 Purpose: View all registered users.
+Endpoint: `GET /api/users`
 SQL: `SELECT user_id, first_name, last_name, date_of_birth, phone_number, email_address, role FROM users ORDER BY user_id`
 Interface: Not directly used in UI (available to librarians/admins)
 
 ### 4.1.4 View My Profile
 Purpose: Show the logged‑in user's profile.
+Endpoint: `GET /api/users/:id`
 SQL: `SELECT user_id, first_name, last_name, date_of_birth, phone_number, email_address, role FROM users WHERE user_id = $1`
 Interface: Profile page (`loadProfile()`)
 
 ### 4.1.5 Update User Role (admin)
 Purpose: Promote or demote a user role.
+Endpoint: `PUT /api/users/:id/role`
 SQL: `UPDATE users SET role = $1 WHERE user_id = $2 RETURNING user_id, first_name, last_name, role`
 Interface: Not directly used in UI (available via admin SQL)
 
 ### 4.1.6 Search Books
 Purpose: Search by title, ISBN, or author.
+Endpoint: `GET /api/search?q=...`
 SQL: `SELECT DISTINCT bd.isbn, bd.title, bd.publisher, bd.publication_year FROM book_details bd LEFT JOIN book_authors ba ON bd.isbn = ba.isbn LEFT JOIN authors a ON ba.author_id = a.author_id WHERE bd.title ILIKE $1 OR bd.isbn ILIKE $1 OR a.name ILIKE $1 ORDER BY bd.title`
 Interface: Search page (`searchBooks()`)
 
 ### 4.1.7 View Book Details
 Purpose: Show a book, its authors, and genres.
+Endpoint: `GET /api/book-details/:isbn`
 SQL:
 - `SELECT * FROM book_details WHERE isbn = $1`
 - `SELECT a.author_id, a.name FROM authors a JOIN book_authors ba ON a.author_id = ba.author_id WHERE ba.isbn = $1`
@@ -42,11 +49,13 @@ Interface: Search page → details (`showBookDetail()`)
 
 ### 4.1.8 List Physical Copies
 Purpose: Show all copies of a book and their availability.
+Endpoint: `GET /api/books`
 SQL: `SELECT b.book_id, b.isbn, b.copy_number, b.condition, b.status, bd.title, bd.publisher, bd.publication_year FROM books b JOIN book_details bd ON b.isbn = bd.isbn ORDER BY bd.title, b.copy_number`
 Interface: Search page → details (`showBookDetail()`)
 
 ### 4.1.9 Add Book Details (librarian/admin)
 Purpose: Add a new title by ISBN.
+Endpoint: `POST /api/book-details`
 SQL:
 - `INSERT INTO book_details (isbn, title, publisher, publication_year, description) VALUES ($1, $2, $3, $4, $5)`
 - `INSERT INTO book_authors (isbn, author_id) VALUES ($1, $2)` (per author)
@@ -55,6 +64,7 @@ Interface: For‑Librarian page (`addBookDetails()`)
 
 ### 4.1.10 Add Physical Copy (librarian/admin)
 Purpose: Add a new physical copy of an existing ISBN.
+Endpoint: `POST /api/books`
 SQL:
 - `SELECT isbn FROM book_details WHERE isbn = $1`
 - `INSERT INTO books (isbn, copy_number, condition, status) VALUES ($1, $2, $3, 'Available') RETURNING *`
@@ -62,16 +72,19 @@ Interface: For‑Librarian page (`addCopy()`)
 
 ### 4.1.11 Add Author (librarian/admin)
 Purpose: Add a new author.
+Endpoint: `POST /api/authors`
 SQL: `INSERT INTO authors (name) VALUES ($1) RETURNING *`
 Interface: For‑Librarian page (`addAuthor()`)
 
 ### 4.1.12 Add Genre (librarian/admin)
 Purpose: Add a new genre.
+Endpoint: `POST /api/genres`
 SQL: `INSERT INTO genres (name) VALUES ($1) RETURNING *`
 Interface: For‑Librarian page (`addGenre()`)
 
 ### 4.1.13 Borrow a Book (librarian)
 Purpose: Check out a book for a member and update status.
+Endpoint: `POST /api/borrow`
 SQL:
 - `SELECT user_id, first_name, last_name FROM users WHERE user_id = $1`
 - `SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('max_books_per_user', 'loan_period_days')`
@@ -83,6 +96,7 @@ Interface: For‑Librarian page (`borrowBook()`)
 
 ### 4.1.14 Return a Book (librarian)
 Purpose: Close a borrow record and calculate fine if late.
+Endpoint: `POST /api/return`
 SQL:
 - `SELECT * FROM borrow_records WHERE book_id = $1 AND return_date IS NULL`
 - `UPDATE borrow_records SET return_date = $1 WHERE transaction_id = $2`
@@ -93,41 +107,49 @@ Interface: For‑Librarian page (`returnBook()`)
 
 ### 4.1.15 View Borrow Records (librarian/admin)
 Purpose: View all transactions.
+Endpoint: `GET /api/borrows`
 SQL: `SELECT br.*, u.first_name, u.last_name, bd.title FROM borrow_records br JOIN users u ON br.user_id = u.user_id JOIN books b ON br.book_id = b.book_id JOIN book_details bd ON b.isbn = bd.isbn ORDER BY br.borrow_date DESC`
 Interface: For‑Librarian page (`loadAllBorrows()`)
 
 ### 4.1.16 View My Borrow Records
 Purpose: Show a member's own borrow history.
+Endpoint: `GET /api/borrows/my`
 SQL: `SELECT br.*, bd.title FROM borrow_records br JOIN books b ON br.book_id = b.book_id JOIN book_details bd ON b.isbn = bd.isbn WHERE br.user_id = $1 ORDER BY br.borrow_date DESC`
 Interface: Profile page (`loadProfile()`)
 
 ### 4.1.17 View Fines (librarian/admin)
 Purpose: View all fines.
+Endpoint: `GET /api/fines`
 SQL: `SELECT f.*, u.first_name, u.last_name, bd.title FROM fines f JOIN borrow_records br ON f.transaction_id = br.transaction_id JOIN users u ON br.user_id = u.user_id JOIN books b ON br.book_id = b.book_id JOIN book_details bd ON b.isbn = bd.isbn ORDER BY f.date_issued DESC`
 Interface: For‑Librarian page (`loadAllFines()`)
 
 ### 4.1.18 View My Fines
 Purpose: Show a member's own fines.
+Endpoint: `GET /api/fines/my`
 SQL: `SELECT f.*, bd.title FROM fines f JOIN borrow_records br ON f.transaction_id = br.transaction_id JOIN books b ON br.book_id = b.book_id JOIN book_details bd ON b.isbn = bd.isbn WHERE br.user_id = $1 ORDER BY f.date_issued DESC`
 Interface: Profile page (`loadProfile()`)
 
 ### 4.1.19 Mark Fine as Paid (librarian/admin)
 Purpose: Update a fine to paid.
+Endpoint: `POST /api/fines/:id/pay`
 SQL: `UPDATE fines SET paid = true, date_paid = CURRENT_DATE WHERE fine_id = $1 AND paid = false RETURNING *`
 Interface: For‑Librarian page (`payFine()`)
 
 ### 4.1.20 View System Settings (admin)
 Purpose: Read current system settings.
+Endpoint: `GET /api/settings`
 SQL: `SELECT * FROM system_settings ORDER BY setting_key`
 Interface: For‑Admin page (`loadSettings()`)
 
 ### 4.1.21 Update System Settings (admin)
 Purpose: Change max books, loan period, fine rate.
+Endpoint: `PUT /api/settings/:key`
 SQL: `UPDATE system_settings SET setting_value = $1 WHERE setting_key = $2 RETURNING *`
 Interface: For‑Admin page (`updateSetting()`)
 
 ### 4.1.22 Run Raw SQL (admin)
 Purpose: Run any SQL query for admin/demo.
+Endpoint: `POST /api/sql`
 SQL: Arbitrary SQL typed by admin.
 Interface: For‑Admin page (`runSQL()`)
 
