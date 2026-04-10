@@ -43,6 +43,13 @@ function runQuiet(command) {
     }
 }
 
+// edge case where installed PostgreSQL but psql is not on PATH
+function isPostgresInstalledByWinget() {
+    let output = runQuiet("winget list --id PostgreSQL.PostgreSQL.16");
+    if (!output) return false;
+    if (/No installed package/i.test(output)) return false;
+    return /PostgreSQL/i.test(output);
+}
 
 // helper to ask the user a question
 function askUser(question) {
@@ -74,6 +81,13 @@ async function installPostgreSQL() {
         return;
     }
 
+    if (isPostgresInstalledByWinget()) {
+        console.log("  PostgreSQL appears to be installed, but psql is not on PATH.");
+        console.log("  Add PostgreSQL bin to PATH or restart your terminal, then re-run this script.");
+        console.log("  (Typical path: C:\\Program Files\\PostgreSQL\\16\\bin)");
+        process.exit(0);
+    }
+
     // use winget
     console.log("  PostgreSQL was not found on this computer.");
     console.log("");
@@ -92,6 +106,12 @@ async function installPostgreSQL() {
     let success = runCommand(installCmd);
 
     if (!success) {
+        if (isPostgresInstalledByWinget()) {
+            console.log("  PostgreSQL is installed, but psql is not on PATH.");
+            console.log("  Add PostgreSQL bin to PATH or restart your terminal, then re-run this script.");
+            console.log("  (Typical path: C:\\Program Files\\PostgreSQL\\16\\bin)");
+            process.exit(0);
+        }
         console.log("  ERROR: PostgreSQL installation failed.");
         process.exit(1);
     }
